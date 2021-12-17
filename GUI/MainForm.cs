@@ -34,7 +34,7 @@ namespace GUI
             LoadAssetTypes();
             InitializeComponent();
 
-            Text = "VRF - Source 2 Resource Viewer v" + Application.ProductVersion;
+            Text = "VRF - Source 2 Resource Viewer v" + Application.ProductVersion + " (Modded For Sets)";
 
             mainTabs.SelectedIndexChanged += (o, e) =>
             {
