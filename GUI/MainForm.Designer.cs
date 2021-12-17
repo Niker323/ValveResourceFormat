@@ -15,8 +15,7 @@ namespace GUI
         {
             public string Name { get; set; }
 
-            private List<MainForm.MyNodeData> _childs = new List<MainForm.MyNodeData>();
-            public Dictionary<string, MainForm.MyNodeData> Childs { get; set; }
+            public List<MainForm.MyNodeData> Childs { get; set; }
 
             public Dictionary<string, string> Data { get; set; }
 
@@ -25,7 +24,7 @@ namespace GUI
             public void AddStringStringData(string str1, string str2, int level)
             {
                 if (level > this.Level)
-                    this._childs[_childs.Count - 1].AddStringStringData(str1, str2, level);
+                    this.Childs[checked(this.Childs.Count - 1)].AddStringStringData(str1, str2, level);
                 else
                     this.Data[str1] = str2;
             }
@@ -33,31 +32,29 @@ namespace GUI
             public void CreateChild(string name, int level)
             {
                 if (level > this.Level)
-                    this._childs[_childs.Count - 1].CreateChild(name, level);
+                    this.Childs[checked(this.Childs.Count - 1)].CreateChild(name, level);
                 else
-                    this._childs.Add(new MainForm.MyNodeData()
+                    this.Childs.Add(new MainForm.MyNodeData()
                     {
                         Name = name,
                         Level = checked(this.Level + 1),
-                        Childs = new Dictionary<string, MainForm.MyNodeData>(),
+                        Childs = new List<MainForm.MyNodeData>(),
                         Data = new Dictionary<string, string>()
                     });
             }
 
-            public void Release()
+            public MainForm.MyNodeData GetChild(int level) => level > this.Level ? this.Childs[0] : this.Childs[0].GetChild(level);
+
+            public MainForm.MyNodeData FindChildByName(string name)
             {
-                for (int i = 0; i < _childs.Count; i++)
+                int index = 0;
+                while (this.Childs.Count > index)
                 {
-                    _childs[i].Release();
-                    if (Childs.TryGetValue(_childs[i].Name, out _))
-                    {
-                        Childs[_childs[i].Name] = _childs[i];
-                    }
-                    else
-                    {
-                        Childs.Add(_childs[i].Name, _childs[i]);
-                    }
+                    if (this.Childs[index].Name == name)
+                        return this.Childs[index];
+                    checked { ++index; }
                 }
+                return (MainForm.MyNodeData)null;
             }
         }
 
@@ -73,8 +70,6 @@ namespace GUI
             if (!(node.Tag.GetType() == typeof(PackageEntry)))
                 return;
 
-            treeView1.Cursor = Cursors.Default;
-            treeView2.Cursor = Cursors.Default;
             var package = node.TreeView.Tag as TreeViewWithSearchResults.TreeViewPackageTag;
             var file = node.Tag as PackageEntry;
             package.Package.ReadEntry(file, out var output);
@@ -84,7 +79,7 @@ namespace GUI
                 empty1 = Encoding.UTF8.GetString(output);
             MainForm.MyNodeData data = new MainForm.MyNodeData();
             data.Name = "Base";
-            data.Childs = new Dictionary<string, MainForm.MyNodeData>();
+            data.Childs = new List<MainForm.MyNodeData>();
             data.Data = new Dictionary<string, string>();
             int level = 0;
             string empty2 = string.Empty;
@@ -133,17 +128,14 @@ namespace GUI
                     checked { --level; }
                 checked { ++index; }
             }
-            data.Release();
             //Console.WriteLine("End Loading");
             //Console.WriteLine(data.Childs.Count.ToString());
             List<MyNodeData> allHeroItems = FindAllHeroItems(data);
 
-            //allHeroItems.Sort(delegate (MyNodeData x, MyNodeData y)
-            //{
-            //    return x.Childs["used_by_heroes"].Data.First().Key.CompareTo(y.Childs["used_by_heroes"].Data.First().Key);
-            //});
+            //Array nodes = new Array();
+            //treeView1.Nodes. .CopyTo(nodes, 0);
 
-            Console.WriteLine(allHeroItems.Count.ToString());
+            //Console.WriteLine(allHeroItems.Count.ToString());
 
             //var error = Convert.ToInt32("error");
             treeView2.Tag = (object)allHeroItems;
@@ -153,43 +145,42 @@ namespace GUI
 
         public void CreateNodes(List<MyNodeData> itemlist, TreeNode startnode)
         {
-            Dictionary<string, List<MainForm.MyNodeData>> source = new Dictionary<string, List<MainForm.MyNodeData>>();
+            SortedDictionary<string, List<MainForm.MyNodeData>> source = new SortedDictionary<string, List<MainForm.MyNodeData>>();
             int index1 = 0;
-            KeyValuePair<string, string> keyValuePair;
             while (itemlist.Count > index1)
             {
-                Dictionary<string, string> data = itemlist[index1].Childs["used_by_heroes"].Data;
-                Dictionary<string, List<MainForm.MyNodeData>> dictionary1 = source;
-                keyValuePair = data.ElementAt<KeyValuePair<string, string>>(0);
-                string key1 = keyValuePair.Key;
+                Dictionary<string, string> data = itemlist[index1].FindChildByName("used_by_heroes").Data;
+                string key1 = data.First().Key;
                 List<MainForm.MyNodeData> myNodeDataList1;
-                if (dictionary1.TryGetValue(key1, out myNodeDataList1))
+                if (source.TryGetValue(key1, out myNodeDataList1))
                 {
                     myNodeDataList1.Add(itemlist[index1]);
-                    Dictionary<string, List<MainForm.MyNodeData>> dictionary2 = source;
-                    keyValuePair = data.ElementAt<KeyValuePair<string, string>>(0);
-                    string key2 = keyValuePair.Key;
+                    string key2 = data.First().Key;
                     List<MainForm.MyNodeData> myNodeDataList2 = myNodeDataList1;
-                    dictionary2[key2] = myNodeDataList2;
+                    source[key2] = myNodeDataList2;
                 }
                 else
                 {
                     List<MainForm.MyNodeData> myNodeDataList3 = new List<MainForm.MyNodeData>();
                     myNodeDataList3.Add(itemlist[index1]);
-                    Dictionary<string, List<MainForm.MyNodeData>> dictionary3 = source;
-                    keyValuePair = data.ElementAt<KeyValuePair<string, string>>(0);
-                    string key3 = keyValuePair.Key;
+                    string key3 = data.First().Key;
                     List<MainForm.MyNodeData> myNodeDataList4 = myNodeDataList3;
-                    dictionary3[key3] = myNodeDataList4;
+                    source[key3] = myNodeDataList4;
                 }
                 checked { ++index1; }
             }
+
+            //source.Sort(delegate (KeyValuePair<string, List<MyNodeData>> x, KeyValuePair<string, List<MyNodeData>> y)
+            //{
+            //    return x.FindChildByName("used_by_heroes").Data.ElementAt<KeyValuePair<string, string>>(0).Key.CompareTo(y.FindChildByName("used_by_heroes").Data.ElementAt<KeyValuePair<string, string>>(0).Key);
+            //});
+
             int index2 = 0;
-            while (source.Count > index2)
+            foreach (KeyValuePair<string, List<MainForm.MyNodeData>> keyValuePair in source)
             {
                 MainForm.MyNodeData data = new MainForm.MyNodeData();
-                data.Name = source.ElementAt<KeyValuePair<string, List<MainForm.MyNodeData>>>(index2).Key;
-                List<MainForm.MyNodeData> myNodeDataList = source.ElementAt<KeyValuePair<string, List<MainForm.MyNodeData>>>(index2).Value;
+                data.Name = keyValuePair.Key;
+                List<MainForm.MyNodeData> myNodeDataList = keyValuePair.Value;
                 TreeNode node1 = this.AddTreeNodeByObject(data, startnode);
                 data.Name = "Bundles";
                 TreeNode node2 = this.AddTreeNodeByObject(data, node1);
@@ -200,18 +191,15 @@ namespace GUI
                     if (myNodeDataList[index3].Data.TryGetValue("prefab", out str) && str == "bundle")
                     {
                         TreeNode node3 = this.AddTreeNodeByObject(myNodeDataList[index3], node2);
-                        if (myNodeDataList[index3].Childs.TryGetValue("bundle", out MyNodeData childByName))
+                        MainForm.MyNodeData childByName = myNodeDataList[index3].FindChildByName("bundle");
+                        if (childByName != null)
                         {
-                            int index4 = 0;
-                            while (childByName.Data.Count > index4)
+                            foreach (KeyValuePair<string, string> strkv in childByName.Data)
                             {
-                                List<MainForm.MyNodeData> list = itemlist;
-                                keyValuePair = childByName.Data.ElementAt<KeyValuePair<string, string>>(index4);
-                                string key = keyValuePair.Key;
-                                MainForm.MyNodeData itemByDataName = FindItemByDataName(list, key);
+                                string key = strkv.Key;
+                                MainForm.MyNodeData itemByDataName = FindItemByDataName(itemlist, key);
                                 if (itemByDataName != null)
                                     this.AddTreeNodeByObject(itemByDataName, node3);
-                                checked { ++index4; }
                             }
                         }
                     }
@@ -226,18 +214,15 @@ namespace GUI
                     if (myNodeDataList[index5].Data.TryGetValue("item_rarity", out str) && str == "immortal")
                     {
                         TreeNode node5 = this.AddTreeNodeByObject(myNodeDataList[index5], node4);
-                        if (myNodeDataList[index5].Childs.TryGetValue("bundle", out MyNodeData childByName))
+                        MainForm.MyNodeData childByName = myNodeDataList[index5].FindChildByName("bundle");
+                        if (childByName != null)
                         {
-                            int index6 = 0;
-                            while (childByName.Data.Count > index6)
+                            foreach (KeyValuePair<string, string> strkv in childByName.Data)
                             {
-                                List<MainForm.MyNodeData> list = itemlist;
-                                keyValuePair = childByName.Data.ElementAt<KeyValuePair<string, string>>(index6);
-                                string key = keyValuePair.Key;
-                                MainForm.MyNodeData itemByDataName = FindItemByDataName(list, key);
+                                string key = strkv.Key;
+                                MainForm.MyNodeData itemByDataName = FindItemByDataName(itemlist, key);
                                 if (itemByDataName != null)
                                     this.AddTreeNodeByObject(itemByDataName, node5);
-                                checked { ++index6; }
                             }
                         }
                     }
@@ -254,18 +239,15 @@ namespace GUI
                         if (node6 == null)
                             node6 = this.AddTreeNodeByObject(data, node1);
                         TreeNode node7 = this.AddTreeNodeByObject(myNodeDataList[index7], node6);
-                        if (myNodeDataList[index7].Childs.TryGetValue("bundle", out MyNodeData childByName))
+                        MainForm.MyNodeData childByName = myNodeDataList[index7].FindChildByName("bundle");
+                        if (childByName != null)
                         {
-                            int index8 = 0;
-                            while (childByName.Data.Count > index8)
+                            foreach (KeyValuePair<string, string> strkv in childByName.Data)
                             {
-                                List<MainForm.MyNodeData> list = itemlist;
-                                keyValuePair = childByName.Data.ElementAt<KeyValuePair<string, string>>(index8);
-                                string key = keyValuePair.Key;
-                                MainForm.MyNodeData itemByDataName = FindItemByDataName(list, key);
+                                string key = strkv.Key;
+                                MainForm.MyNodeData itemByDataName = FindItemByDataName(itemlist, key);
                                 if (itemByDataName != null)
                                     this.AddTreeNodeByObject(itemByDataName, node7);
-                                checked { ++index8; }
                             }
                         }
                     }
@@ -277,18 +259,15 @@ namespace GUI
                 while (myNodeDataList.Count > index9)
                 {
                     TreeNode node9 = this.AddTreeNodeByObject(myNodeDataList[index9], node8);
-                    if (myNodeDataList[index9].Childs.TryGetValue("bundle", out MyNodeData childByName))
+                    MainForm.MyNodeData childByName = myNodeDataList[index9].FindChildByName("bundle");
+                    if (childByName != null)
                     {
-                        int index10 = 0;
-                        while (childByName.Data.Count > index10)
+                        foreach (KeyValuePair<string, string> strkv in childByName.Data)
                         {
-                            List<MainForm.MyNodeData> list = itemlist;
-                            keyValuePair = childByName.Data.ElementAt<KeyValuePair<string, string>>(index10);
-                            string key = keyValuePair.Key;
-                            MainForm.MyNodeData itemByDataName = FindItemByDataName(list, key);
+                            string key = strkv.Key;
+                            MainForm.MyNodeData itemByDataName = FindItemByDataName(itemlist, key);
                             if (itemByDataName != null)
                                 this.AddTreeNodeByObject(itemByDataName, node9);
-                            checked { ++index10; }
                         }
                     }
                     checked { ++index9; }
@@ -310,16 +289,17 @@ namespace GUI
             return null;
         }
 
-        public static List<MyNodeData> FindAllHeroItems(MyNodeData data)
+        public static List<MainForm.MyNodeData> FindAllHeroItems(MyNodeData data)
         {
             List<MyNodeData> myNodeDataList = new List<MyNodeData>();
-            MyNodeData child = data.Childs["items_game"].Childs["items"];
-            foreach (KeyValuePair<string, MyNodeData> kv in child.Childs)
+            MyNodeData child = data.Childs[0].Childs[7];
+            int index = 0;
+            while (child.Childs.Count > index)
             {
                 string str;
-                if (kv.Value.Childs.TryGetValue("used_by_heroes", out _ ) && (!kv.Value.Data.TryGetValue("prefab", out str) || !(str == "treasure_chest") && !(str == "retired_treasure_chest")))
-                    myNodeDataList.Add(kv.Value);
-
+                if (child.Childs[index].FindChildByName("used_by_heroes") != null && (!child.Childs[index].Data.TryGetValue("prefab", out str) || !(str == "treasure_chest") && !(str == "retired_treasure_chest")))
+                    myNodeDataList.Add(child.Childs[index]);
+                checked { ++index; }
             }
             return myNodeDataList;
         }
@@ -380,22 +360,22 @@ namespace GUI
             {
                 MainForm.MyNodeData childByName = new MainForm.MyNodeData()
                 {
-                    Childs = ((Dictionary<string, MainForm.MyNodeData>)this.treeView2.Tag)
-                }.Childs[this.treeView1.SelectedNode.Text];
-                Dictionary<string, string> data = childByName.Childs["used_by_heroes"].Data;
+                    Childs = ((List<MainForm.MyNodeData>)this.treeView2.Tag)
+                }.FindChildByName(this.treeView1.SelectedNode.Text);
+                Dictionary<string, string> data = childByName.FindChildByName("used_by_heroes").Data;
                 TreeNodeCollection nodes1 = this.treeView2.Nodes;
-                KeyValuePair<string, string> keyValuePair = data.ElementAt<KeyValuePair<string, string>>(0);
+                KeyValuePair<string, string> keyValuePair = data.First();
                 string key1 = keyValuePair.Key;
                 TreeNode[] treeNodeArray = nodes1.Find(key1, true);
                 TreeNode treeNode1;
                 if (treeNodeArray.Length == 0)
                 {
                     TreeNodeCollection nodes2 = this.treeView2.Nodes;
-                    keyValuePair = data.ElementAt<KeyValuePair<string, string>>(0);
+                    keyValuePair = data.First();
                     string key2 = keyValuePair.Key;
                     treeNode1 = nodes2.Add(key2);
                     TreeNode treeNode2 = treeNode1;
-                    keyValuePair = data.ElementAt<KeyValuePair<string, string>>(0);
+                    keyValuePair = data.First();
                     string key3 = keyValuePair.Key;
                     treeNode2.Name = key3;
                 }
@@ -415,15 +395,15 @@ namespace GUI
                 {
                     MainForm.MyNodeData childByName = new MainForm.MyNodeData()
                     {
-                        Childs = ((Dictionary<string, MainForm.MyNodeData>)this.treeView2.Tag)
-                    }.Childs[this.treeView1.SelectedNode.Nodes[index].Text];
-                    Dictionary<string, string> data = childByName.Childs["used_by_heroes"].Data;
-                    TreeNode[] treeNodeArray = this.treeView2.Nodes.Find(data.ElementAt<KeyValuePair<string, string>>(0).Key, true);
+                        Childs = ((List<MainForm.MyNodeData>)this.treeView2.Tag)
+                    }.FindChildByName(this.treeView1.SelectedNode.Nodes[index].Text);
+                    Dictionary<string, string> data = childByName.FindChildByName("used_by_heroes").Data;
+                    TreeNode[] treeNodeArray = this.treeView2.Nodes.Find(data.First().Key, true);
                     TreeNode treeNode4;
                     if (treeNodeArray.Length == 0)
                     {
-                        treeNode4 = this.treeView2.Nodes.Add(data.ElementAt<KeyValuePair<string, string>>(0).Key);
-                        treeNode4.Name = data.ElementAt<KeyValuePair<string, string>>(0).Key;
+                        treeNode4 = this.treeView2.Nodes.Add(data.First().Key);
+                        treeNode4.Name = data.First().Key;
                     }
                     else
                         treeNode4 = treeNodeArray[0];

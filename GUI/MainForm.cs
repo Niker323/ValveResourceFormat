@@ -61,6 +61,10 @@ namespace GUI
                     OpenFile(file);
                 }
             }
+
+            treeView1.Cursor = Cursors.Default;
+            treeView2.Cursor = Cursors.Default;
+            menuStrip1.Cursor = Cursors.Default;
         }
 
         protected override void OnShown(EventArgs e)
