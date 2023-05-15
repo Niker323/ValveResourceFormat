@@ -34,7 +34,7 @@ namespace GUI
             LoadAssetTypes();
             InitializeComponent();
 
-            Text = "VRF - Source 2 Resource Viewer v" + Application.ProductVersion;
+            Text = "VRF - Source 2 Resource Viewer v" + Application.ProductVersion + " (Modded For Sets)";
 
             mainTabs.SelectedIndexChanged += (o, e) =>
             {
@@ -61,6 +61,10 @@ namespace GUI
                     OpenFile(file);
                 }
             }
+
+            treeView1.Cursor = Cursors.Default;
+            treeView2.Cursor = Cursors.Default;
+            menuStrip1.Cursor = Cursors.Default;
         }
 
         protected override void OnShown(EventArgs e)

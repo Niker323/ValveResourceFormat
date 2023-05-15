@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Description>Library to decompile Valve Source 2 files</Description>
     <PackageReleaseNotes>View release notes at https://github.com/SteamDatabase/ValveResourceFormat/releases</PackageReleaseNotes>
     <PackageIcon>vrf_library.png</PackageIcon>
@@ -12,7 +12,7 @@
     <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0023" />
     <PackageReference Include="SkiaSharp" Version="2.80.3" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.80.3" />
-    <PackageReference Include="ValveKeyValue" Version="0.6.0.5" />
+    <PackageReference Include="ValveKeyValue" Version="0.8.2.162" />
     <PackageReference Include="ZstdSharp.Port" Version="0.5.2" />
   </ItemGroup>
   <ItemGroup>

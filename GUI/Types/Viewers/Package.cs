@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using GUI.Controls;
 using GUI.Utils;
@@ -45,6 +48,13 @@ namespace GUI.Types.Viewers
             treeViewWithSearch.Disposed += VPK_Disposed;
             tab.Controls.Add(treeViewWithSearch);
 
+            //For Sets
+            Program.MainForm.SetTreeView(treeViewWithSearch);
+            TreeNode[] test = treeViewWithSearch.mainTreeView.Nodes.Find("items_game.txt", true);
+            //var error = Convert.ToInt32("error");
+            if (test.Length > 0)
+                Program.MainForm.Invoke(new Action(() => Program.MainForm.LoadFileInfo(test[0])));
+
             return tab;
         }
 
@@ -79,7 +89,7 @@ namespace GUI.Types.Viewers
             OpenFileFromNode(node);
         }
 
-        private static void OpenFileFromNode(TreeNode node)
+        public static void OpenFileFromNode(TreeNode node)
         {
             //Make sure we aren't a directory!
             if (node.Tag.GetType() == typeof(PackageEntry))
